@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" role="img" aria-labelledby="title desc">
+  <title id="title">Daily Bread Blessings logo</title>
+  <desc id="desc">Green and yellow circular bakery badge with brioche, pizza slice, chocolate crinkle cookie, wheat, business name and tagline.</desc>
+  <defs>
+    <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1F7A4D"/>
+      <stop offset="1" stop-color="#145C3A"/>
+    </linearGradient>
+    <linearGradient id="bread" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFE89A"/>
+      <stop offset="0.7" stop-color="#F3B83F"/>
+      <stop offset="1" stop-color="#C98024"/>
+    </linearGradient>
+    <linearGradient id="pizza" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFD85A"/>
+      <stop offset="1" stop-color="#ECA72C"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#173B2B" flood-opacity=".18"/>
+    </filter>
+  </defs>
+
+  <circle cx="320" cy="320" r="292" fill="#FFFDF5"/>
+  <circle cx="320" cy="320" r="282" fill="none" stroke="url(#ring)" stroke-width="26"/>
+  <circle cx="320" cy="320" r="247" fill="#FFFDF5" stroke="#F3C849" stroke-width="6"/>
+
+  <!-- wheat -->
+  <g fill="none" stroke="#1F7A4D" stroke-width="9" stroke-linecap="round">
+    <path d="M126 385c-12-96 8-178 57-246"/>
+    <path d="M514 385c12-96-8-178-57-246"/>
+  </g>
+  <g fill="#F3C849" stroke="#C8901E" stroke-width="2">
+    <ellipse cx="153" cy="314" rx="11" ry="24" transform="rotate(-35 153 314)"/>
+    <ellipse cx="144" cy="275" rx="11" ry="24" transform="rotate(-40 144 275)"/>
+    <ellipse cx="151" cy="236" rx="11" ry="24" transform="rotate(-47 151 236)"/>
+    <ellipse cx="171" cy="199" rx="11" ry="24" transform="rotate(-52 171 199)"/>
+    <ellipse cx="487" cy="314" rx="11" ry="24" transform="rotate(35 487 314)"/>
+    <ellipse cx="496" cy="275" rx="11" ry="24" transform="rotate(40 496 275)"/>
+    <ellipse cx="489" cy="236" rx="11" ry="24" transform="rotate(47 489 236)"/>
+    <ellipse cx="469" cy="199" rx="11" ry="24" transform="rotate(52 469 199)"/>
+  </g>
+
+  <!-- heat lines -->
+  <g fill="none" stroke="#F3C849" stroke-width="8" stroke-linecap="round">
+    <path d="M280 136c-18 20 18 32 0 54"/>
+    <path d="M320 126c-18 20 18 32 0 54"/>
+    <path d="M360 136c-18 20 18 32 0 54"/>
+  </g>
+
+  <!-- main product cluster -->
+  <g filter="url(#shadow)">
+    <!-- pizza -->
+    <g transform="translate(160 240) rotate(-10)">
+      <path d="M0 116 112 28 132 147Z" fill="url(#pizza)" stroke="#8A5621" stroke-width="7" stroke-linejoin="round"/>
+      <path d="M108 28c21 7 36 22 40 41" fill="none" stroke="#B8742D" stroke-width="18" stroke-linecap="round"/>
+      <circle cx="69" cy="82" r="13" fill="#D9533F"/>
+      <circle cx="93" cy="113" r="12" fill="#D9533F"/>
+      <path d="M39 99c22-15 50-17 75-4" fill="none" stroke="#FFF1B8" stroke-width="10" stroke-linecap="round"/>
+    </g>
+
+    <!-- cookie -->
+    <g transform="translate(425 297)">
+      <circle cx="0" cy="0" r="67" fill="#5D3325" stroke="#321B14" stroke-width="7"/>
+      <g fill="none" stroke="#E7C5A2" stroke-width="8" stroke-linecap="round">
+        <path d="M-40-26-15-13-33 7-8 19"/>
+        <path d="M4-43-2-18 20-5 6 16 28 33"/>
+        <path d="M35-25 18-11 40 5"/>
+        <path d="M-20 36-5 22 10 43"/>
+      </g>
+      <circle cx="4" cy="5" r="13" fill="#2A120D"/>
+    </g>
+
+    <!-- brioche -->
+    <g transform="translate(320 270)">
+      <ellipse cx="0" cy="63" rx="116" ry="75" fill="url(#bread)" stroke="#8A5621" stroke-width="8"/>
+      <ellipse cx="-66" cy="18" rx="53" ry="66" fill="url(#bread)" stroke="#8A5621" stroke-width="7"/>
+      <ellipse cx="0" cy="0" rx="59" ry="76" fill="url(#bread)" stroke="#8A5621" stroke-width="7"/>
+      <ellipse cx="66" cy="18" rx="53" ry="66" fill="url(#bread)" stroke="#8A5621" stroke-width="7"/>
+      <path d="M-85 55c53 30 117 30 170 0" fill="none" stroke="#FFF1B8" stroke-width="12" stroke-linecap="round" opacity=".7"/>
+    </g>
+  </g>
+
+  <!-- wordmark -->
+  <text x="320" y="438" text-anchor="middle" font-family="Georgia, 'Segoe Script', cursive" font-size="54" font-weight="700" fill="#1F7A4D">Daily Bread</text>
+  <text x="320" y="493" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="50" font-weight="900" letter-spacing="3" fill="#24382E">BLESSINGS</text>
+  <rect x="132" y="518" width="376" height="46" rx="23" fill="#F3C849"/>
+  <text
+    x="320"
+    y="548"
+    text-anchor="middle"
+    font-family="Arial, Helvetica, sans-serif"
+    font-size="17"
+    font-weight="800"
+    letter-spacing="1.1"
+    textLength="330"
+    lengthAdjust="spacingAndGlyphs"
+    fill="#173B2B"
+  >FROM OVEN TO OPPORTUNITY</text>
+</svg>

@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Daily Bread Blessings offers freshly baked brioche, pizza, and chocolate lava crinkle cookies. From Oven to Opportunity.">
+  <title>Daily Bread Blessings | From Oven to Opportunity</title>
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css?v=final-complete-7">
+</head>
+<body class="intro-active">
+  <!-- Intro Screen (unchanged) -->
+  <div class="intro-screen" id="introScreen" role="dialog" aria-modal="true" aria-labelledby="introTitle" aria-describedby="introTagline">
+    <audio id="introWelcomeAudio" preload="auto" playsinline>
+      <source src="assets/opening-chime.mp3" type="audio/mpeg">
+      <source src="assets/opening-chime.wav" type="audio/wav">
+    </audio>
+    <audio id="introReadyAudio" preload="auto" playsinline>
+      <source src="assets/ready-chime.mp3" type="audio/mpeg">
+      <source src="assets/ready-chime.wav" type="audio/wav">
+    </audio>
+    <audio id="introEnterAudio" preload="auto" playsinline>
+      <source src="assets/enter-whoosh.mp3" type="audio/mpeg">
+      <source src="assets/enter-whoosh.wav" type="audio/wav">
+    </audio>
+    <button class="intro-sound-toggle" id="introSoundToggle" type="button" aria-pressed="false" aria-label="Turn opening sound on">
+      <span class="intro-sound-waves" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span class="intro-sound-icon" aria-hidden="true">🔇</span>
+      <span class="intro-sound-label">Tap for Sound</span>
+    </button>
+    <div class="intro-curtain intro-curtain-left" aria-hidden="true"></div>
+    <div class="intro-curtain intro-curtain-right" aria-hidden="true"></div>
+    <div class="intro-decoration intro-decoration-one" aria-hidden="true"></div>
+    <div class="intro-decoration intro-decoration-two" aria-hidden="true"></div>
+    <div class="intro-content">
+      <div class="intro-logo-stage" aria-hidden="true">
+        <span class="intro-orbit intro-orbit-one"></span>
+        <span class="intro-orbit intro-orbit-two"></span>
+        <span class="intro-logo-glow"></span>
+        <img class="intro-logo" src="assets/logo.svg" alt="">
+      </div>
+      <p class="intro-kicker">WELCOME TO</p>
+      <h1 class="intro-title" id="introTitle">
+        <span class="intro-title-script">Daily Bread</span>
+        <strong class="intro-title-bold">Blessings</strong>
+      </h1>
+      <p class="intro-tagline" id="introTagline">From Oven to Opportunity</p>
+      <div class="intro-loader" aria-live="polite">
+        <div class="intro-loader-label"><span>Warming the oven</span><span class="intro-loading-dots" aria-hidden="true"><i></i><i></i><i></i></span></div>
+        <div class="intro-loader-track"><span></span></div>
+      </div>
+      <button class="intro-enter intro-enter-fallback" id="enterWebsite" type="button" disabled>
+        <span>Enter to Website</span><span class="intro-enter-arrow" aria-hidden="true">→</span>
+      </button>
+      <p class="intro-note">Freshly baked with creativity, teamwork, and purpose.</p>
+    </div>
+  </div>
+
+  <script>
+    // Intro screen script (unchanged)
+    (() => {
+      const intro = document.getElementById("introScreen");
+      const enterButton = document.getElementById("enterWebsite");
+      if (!intro || !enterButton) return;
+      window.setTimeout(() => {
+        if (intro.dataset.introController === "active") return;
+        intro.classList.add("is-ready");
+        enterButton.disabled = false;
+      }, 1900);
+      enterButton.addEventListener("click", () => {
+        if (intro.dataset.introController === "active") return;
+        if (enterButton.disabled) return;
+        enterButton.disabled = true;
+        intro.classList.add("is-leaving");
+        document.body.classList.add("site-entered");
+        window.setTimeout(() => {
+          intro.remove();
+          document.body.classList.remove("intro-active");
+          window.scrollTo(0, 0);
+        }, 900);
+      });
+    })();
+  </script>
+
+  <div class="food-rain-layer" id="foodRainLayer" aria-hidden="true"></div>
+  <div class="announcement" id="announcement">Freshly baked with skill, teamwork, and purpose.</div>
+
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="#home" aria-label="Daily Bread Blessings home">
+        <img src="assets/logo.svg" alt="Daily Bread Blessings logo">
+        <span class="brand-copy">Daily Bread Blessings<small>FROM OVEN TO OPPORTUNITY</small></span>
+      </a>
+      <nav class="nav-links" id="navLinks" aria-label="Primary navigation">
+        <a href="#home">Home</a><a href="#about">Our Story</a><a href="#menu">Menu</a><a href="#how-it-works">How to Order</a><a href="#ratings">Ratings</a><a href="#contact">Contact</a>
+      </nav>
+      <div class="nav-actions">
+        <button class="icon-btn" id="cartButton" aria-label="Open shopping cart">🛒 <span class="cart-count" id="cartCount">0</span></button>
+        <!-- NEW: Rate Order Button -->
+        <button class="icon-btn" id="rateOrderNavButton" aria-label="Rate your order">⭐</button>
+        <button class="menu-btn" id="menuButton" aria-label="Open navigation menu">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="home">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">Student-powered bakery business</p>
+          <h1>Fresh ideas.<br><strong>Warm opportunities.</strong></h1>
+          <p id="heroDescription">Daily Bread Blessings turns baking skills, teamwork, and creativity into fresh products and real entrepreneurship experience.</p>
+          <div class="hero-actions"><a class="btn btn-yellow" href="#menu">Order Fresh Bakes</a><a class="btn btn-outline" href="#about">Meet the Team</a></div>
+          <div class="hero-points"><span>✓ Freshly prepared</span><span>✓ Student-made</span><span>✓ Pickup-friendly</span></div>
+        </div>
+        <div class="hero-visual" aria-label="Daily Bread Blessings brand showcase">
+          <div class="floating-card fc-1"><img src="assets/Custard Brioche.jpg" alt="Fresh brioche bites"><div><strong>Fresh brioche</strong><small>Soft, buttery, and golden</small></div></div>
+          <div class="floating-card fc-2"><img src="assets/Pizza.jpg" alt="Savory pepperoni mini pizza"><div><strong>Savory pizza</strong><small>Cheesy, rich, and satisfying</small></div></div>
+          <div class="floating-card fc-3"><img src="assets/Chocolate Lava Crinkles.jpg" alt="Chocolate lava crinkles"><div><strong>Lava crinkles</strong><small>Chocolatey and gift-ready</small></div></div>
+          <!-- UPDATED MOCKTAIL CARD BELOW -->
+          <div class="floating-card fc-4"><img src="assets/strawberry-blizz-fizz.jpg" alt="Strawberry Blizz Fizz poster"><div><strong>Strawberry Blizz Fizz</strong><small>Taste the fizz, feel the freeze - strawberry blizz fizz for your refreshment needs!</small></div></div>
+          <img class="hero-logo" src="assets/logo.svg" alt="Daily Bread Blessings circular bakery badge">
+        </div>
+      </div>
+    </section>
+
+    <div class="stats-bar">
+      <div class="container stats-grid">
+        <div class="stat"><strong>3+</strong><span>Signature products</span></div>
+        <div class="stat"><strong>50%</strong><span>Student teamwork</span></div>
+        <div class="stat"><strong>Fresh</strong><span>Made with care</span></div>
+        <div class="stat"><strong>Local</strong><span>School community</span></div>
+      </div>
+    </div>
+
+    <section class="section" id="about">
+      <div class="container about-grid">
+        <div class="about-art"><img src="assets/logo.svg" alt="Daily Bread Blessings bakery emblem"><div class="about-card"><strong>Our purpose</strong>We turn every batch into practical skills, shared success, and new business opportunities.</div></div>
+        <div><p class="eyebrow">More than a bakery</p><h2>From classroom skills to customer smiles.</h2><p class="muted" id="businessDescription">Daily Bread Blessings is a student entrepreneurship group built around homemade quality, responsible teamwork, and creative baking. Every order helps students practice production, customer service, financial discipline, and business management.</p>
+          <div class="feature-list">
+            <div class="feature-item"><div class="feature-icon">🌱</div><div><h3>Growth through experience</h3><p class="muted">Students build confidence by managing real products, orders, and customer needs.</p></div></div>
+            <div class="feature-item"><div class="feature-icon">🤝</div><div><h3>Teamwork in every batch</h3><p class="muted">Planning, baking, packaging, and selling work best when everyone contributes.</p></div></div>
+            <div class="feature-item"><div class="feature-icon">✨</div><div><h3>Quality with a purpose</h3><p class="muted">Careful preparation and warm service help every product feel special.</p></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section menu-section" id="menu">
+      <div class="container">
+        <div class="section-title"><p class="eyebrow">Fresh from our oven</p><h2>Choose your next favorite.</h2><p class="muted">Browse available products, check stock, and add your preferred quantity to the cart.</p></div>
+        <div class="menu-toolbar">
+          <div class="filters" id="categoryFilters"></div>
+          <label class="search-box"><span>⌕</span><span class="sr-only">Search products</span><input type="search" id="productSearch" placeholder="Search the menu"></label>
+        </div>
+        <div class="product-grid" id="productGrid"></div>
+      </div>
+    </section>
+
+    <section class="section rating-section" id="ratings">
+      <div class="container">
+        <div class="rating-summary-card">
+          <div class="rating-score-block"><p class="eyebrow">Customer experience</p><div class="rating-score-line"><strong id="ratingAverage">0.0</strong><span>out of 5</span></div><div class="rating-stars-display" id="ratingStarsDisplay" aria-label="No ratings yet"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div><p class="muted" id="ratingCount">No customer ratings yet.</p></div>
+          <div class="rating-summary-copy"><span class="rating-badge">Verified orders</span><h2>Rate your ordering experience.</h2><p>Customers can leave a 1–5 star rating after submitting an order, similar to an online shop rating system.</p><div class="recent-ratings" id="recentRatings"><p class="muted">Be the first customer to leave a rating.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="how-it-works">
+      <div class="container"><div class="section-title"><p class="eyebrow">Simple ordering</p><h2>Fresh bakes in four steps.</h2></div>
+        <div class="process-grid">
+          <article class="process-card"><div class="process-number">1</div><h3>Choose products</h3><p class="muted">Browse the menu and open product details.</p></article>
+          <article class="process-card"><div class="process-number">2</div><h3>Set quantity</h3><p class="muted">Add items and adjust quantities in your cart.</p></article>
+          <article class="process-card"><div class="process-number">3</div><h3>Submit order</h3><p class="muted">Enter pickup and contact information.</p></article>
+          <article class="process-card"><div class="process-number">4</div><h3>Save confirmation</h3><p class="muted">Receive a unique order number for tracking.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section contact-section" id="contact">
+      <div class="container contact-grid">
+        <div><p class="eyebrow">Talk to our team</p><h2>Questions, orders, or school partnerships?</h2><p>Send a message or visit us during our pickup schedule.</p>
+          <div class="contact-cards">
+            <div class="contact-card"><div>📍</div><div><strong>Location</strong><span id="locationText">Oriental Mindoro National High School (OMNHS)</span></div></div>
+            <div class="contact-card"><div>🕒</div><div><strong>Store schedule</strong><span id="scheduleText">Junior High - 1:30PM - 2:00PM Senior High - 2:00PM - 2:30PM</span></div></div>
+            <div class="contact-card"><div>☎</div><div><strong>Contact</strong><span id="contactText">0965 296 4107</span></div></div>
+            
+            <!-- UPDATED FACEBOOK CONTACT CARD -->
+            <div class="contact-card">
+              <div style="display: grid; place-items: center;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#1877F2">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                </svg>
+              </div>
+              <div>
+                <strong>Facebook</strong>
+                <a href="#" target="_blank" rel="noopener noreferrer" id="facebookContactText">Kean Fallarcona</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <form class="form-card" id="contactForm">
+          <h3>Send us a message</h3>
+          <div class="form-grid">
+            <div class="form-group"><label for="contactName">Full name</label><input id="contactName" required></div>
+            <div class="form-group"><label for="contactEmail">Email address</label><input id="contactEmail" type="email" required></div>
+            <div class="form-group full"><label for="contactSubject">Subject</label><input id="contactSubject" required></div>
+            <div class="form-group full"><label for="contactMessage">Message</label><textarea id="contactMessage" required></textarea></div>
+            <div class="form-group full"><button class="btn" type="submit">Send Message</button></div>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <!-- FIXED FOOTER: Added Rate Your Order link -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <img src="assets/logo.svg" alt="Daily Bread Blessings logo">
+          <p>Freshly baked products powered by student creativity, teamwork, and entrepreneurship.</p>
+        </div>
+        <div>
+          <h3 class="footer-title">Quick links</h3>
+          <div class="footer-links">
+            <a href="#about">Our Story</a>
+            <a href="#menu">Menu</a>
+            <a href="#ratings">Ratings</a>
+            <a href="#how-it-works">How to Order</a>
+            <a href="#" id="rateOrderFooterLink">Rate Your Order</a>
+          </div>
+        </div>
+        <div>
+          <h3 class="footer-title">Products</h3>
+          <div class="footer-links">
+            <a href="#menu">Custard Brioche</a>
+            <a href="#menu">Pizza</a>
+            <a href="#menu">Chocolate Lava Crinkles</a>
+            <a href="#menu">Strawberry Blizz Fizz</a>
+          </div>
+        </div>
+        <div>
+          <h3 class="footer-title">Follow our journey</h3>
+          <div class="socials" id="socialLinks">
+            <a href="#" aria-label="Facebook">f</a>
+            <a href="#" aria-label="Instagram">◎</a>
+            <a href="#" aria-label="TikTok">♪</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© <span id="year"></span> Daily Bread Blessings.</span>
+        <span>From Oven to Opportunity</span>
+      </div>
+    </div>
+  </footer>
+
+  <aside class="drawer" id="cartDrawer" aria-hidden="true"><div class="overlay" data-close="cart"></div>
+    <div class="drawer-panel"><div class="drawer-head"><div><p class="eyebrow">Your order</p><h3>Shopping Cart</h3></div><button class="icon-btn" data-close="cart" aria-label="Close cart">✕</button></div>
+      <div class="drawer-body" id="cartItems"></div>
+      <div class="drawer-foot"><div class="summary-line"><span>Subtotal</span><strong id="cartSubtotal">₱0.00</strong></div><div class="summary-line"><span>Pickup fee</span><strong>₱0.00</strong></div><div class="summary-line summary-total"><span>Total</span><strong id="cartTotal">₱0.00</strong></div><button class="btn btn-block" id="checkoutButton">Proceed to Checkout</button></div>
+    </div>
+  </aside>
+
+  <div class="modal" id="productModal" aria-hidden="true"><div class="overlay" data-close="product"></div>
+    <div class="modal-dialog"><div class="modal-head"><h3>Product Details</h3><button class="icon-btn" data-close="product" aria-label="Close product details">✕</button></div><div class="modal-body" id="productDetail"></div></div>
+  </div>
+
+  <!-- CHECKOUT MODAL (Rating form removed) -->
+  <div class="modal" id="checkoutModal" aria-hidden="true"><div class="overlay" data-close="checkout"></div>
+    <div class="modal-dialog"><div class="modal-head"><h3 id="checkoutTitle">Checkout</h3><button class="icon-btn" data-close="checkout" aria-label="Close checkout">✕</button></div>
+      <div class="modal-body">
+        <div class="checkout-steps"><span class="checkout-step active"></span><span class="checkout-step" id="confirmStep"></span></div>
+        <form id="checkoutForm">
+          <div class="form-grid">
+            <div class="form-group"><label for="customerName">Full name</label><input id="customerName" required></div>
+            <div class="form-group"><label for="customerContact">Contact number</label><input id="customerContact" required pattern="[0-9+\-\s]{7,20}"></div>
+            <div class="form-group"><label for="customerEmail">Email address</label><input id="customerEmail" type="email"></div>
+            <div class="form-group"><label for="pickupDate">Pickup date</label><input id="pickupDate" type="date" required></div>
+            <div class="form-group"><label for="pickupTime">Pickup time</label><select id="pickupTime" required>
+              <option value="">Select time</option>
+              <option>9:00 AM</option>
+              <option>11:00 AM</option>
+              <option>1:00 PM</option>
+              <option>1:30 PM - 2:00 PM (Recess)</option>
+              <option>2:30 PM - 3:00 PM (Recess)</option>
+              <option>3:00 PM</option>
+              <option>5:00 PM</option>
+            </select></div>
+            <div class="form-group"><label for="paymentMethod">Payment method</label><select id="paymentMethod" required><option>Cash on pickup</option><option>GCash</option></select></div>
+            <div class="form-group full"><label for="orderNotes">Order notes</label><textarea id="orderNotes" placeholder="Allergies, packaging requests, or other notes"></textarea></div>
+            <div class="form-group full"><label>Order review</label><div class="order-review" id="checkoutReview"></div></div>
+            <div class="form-group full"><button class="btn btn-block" type="submit">Submit Order</button></div>
+          </div>
+        </form>
+        
+        <!-- ORDER CONFIRMATION (No rating form here anymore) -->
+        <div class="confirmation hidden" id="orderConfirmation">
+          <div class="confirmation-icon">✓</div>
+          <h2>Order received.</h2>
+          <p class="muted">Keep your order number for pickup and follow-up.</p>
+          <div class="order-number" id="confirmationNumber"></div>
+          <div id="confirmationDetails"></div>
+          <button class="btn" data-close="checkout" style="margin-top: 20px;">Continue Shopping</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NEW MODAL: RATE YOUR ORDER -->
+  <div class="modal" id="rateOrderModal" aria-hidden="true">
+    <div class="overlay" data-close="rateOrder"></div>
+    <div class="modal-dialog">
+      <div class="modal-head"><h3>Rate Your Order</h3><button class="icon-btn" data-close="rateOrder">✕</button></div>
+      <div class="modal-body">
+        <!-- Step 1: Lookup form -->
+        <div id="rateOrderLookup">
+          <p class="muted">Enter the order number and email used to place your order.</p>
+          <div class="form-grid">
+            <div class="form-group"><label for="rateOrderNumber">Order Number</label><input id="rateOrderNumber" placeholder="DBB-2026XXXX-XXXX"></div>
+            <div class="form-group"><label for="rateOrderEmail">Email Address</label><input id="rateOrderEmail" type="email"></div>
+          </div>
+          <button class="btn btn-block" id="checkOrderForRating">Find My Order</button>
+        </div>
+
+        <!-- Step 2: Result container -->
+        <div id="rateOrderResult" class="hidden">
+          <div id="rateOrderDetails"></div>
+          
+          <!-- Rating Form (Initially hidden) -->
+          <div id="rateOrderFormContainer" class="hidden">
+            <div class="order-rating-card" style="margin-top: 20px;">
+              <h3>How was your experience?</h3>
+              <div class="order-star-rating" id="rateOrderStarRating">
+                <button type="button" data-rating="1">★</button>
+                <button type="button" data-rating="2">★</button>
+                <button type="button" data-rating="3">★</button>
+                <button type="button" data-rating="4">★</button>
+                <button type="button" data-rating="5">★</button>
+              </div>
+              <p class="selected-rating-text" id="rateOrderSelectedText">Tap a star to rate</p>
+              <div class="form-group" style="margin-top: 12px;">
+                <label for="rateOrderComment">Leave a comment (optional)</label>
+                <textarea id="rateOrderComment" placeholder="Tell us what you loved..." style="min-height: 80px;"></textarea>
+              </div>
+              <button class="btn btn-block" id="submitRateOrderBtn">Submit Rating</button>
+            </div>
+          </div>
+          
+          <!-- Thank You Message (Initially hidden) -->
+          <div class="rating-thank-you hidden" id="rateOrderThankYou">
+            <span>⭐</span>
+            <strong>Thank you for your feedback!</strong>
+            <p class="muted">We appreciate your review.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <audio id="siteBackgroundMusic" preload="auto" loop playsinline>
+    <source src="assets/bakery-chill-loop.mp3" type="audio/mpeg">
+    <source src="assets/bakery-chill-loop.wav" type="audio/wav">
+  </audio>
+  <section class="site-music-player" id="siteMusicPlayer" aria-label="Bakery chill music player">
+    <button class="site-music-main" id="siteMusicToggle" type="button" aria-pressed="false" aria-label="Play relaxing bakery music">
+      <span class="site-music-disc" aria-hidden="true"><img src="assets/logo.svg" alt=""></span>
+      <span class="site-music-copy"><strong>Bakery Chill</strong><small id="siteMusicStatus">Relax music is ready</small></span>
+      <span class="site-music-equalizer" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+      <span class="site-music-play-icon" id="siteMusicPlayIcon" aria-hidden="true">▶</span>
+    </button>
+    <div class="site-music-volume">
+      <button class="site-music-mute" id="siteMusicMute" type="button" aria-label="Mute relaxing music">🔉</button>
+      <label class="sr-only" for="siteMusicVolume">Relaxing music volume</label>
+      <input id="siteMusicVolume" type="range" min="0" max="100" value="18" aria-label="Relaxing music volume">
+    </div>
+  </section>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <!-- ========================================================= -->
+  <!-- SUPABASE SDK -->
+  <!-- ========================================================= -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // ----------------------------------------------------------
+    // PASTE YOUR SUPABASE URL AND ANON KEY BELOW:
+    const SUPABASE_URL = 'https://xxpxrmpbzuknwqbqwrir.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4cHhybXBienVrbndxYnF3cmlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMzkyOTUsImV4cCI6MjEwMDkxNTI5NX0.Qme4kazqrrtm6OJUDk2zy5Hz-9EadENpAY6YjobythQ';
+    // ----------------------------------------------------------
+    window.__SUPABASE = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  </script>
+  <script src="script.js?v=final-complete-7"></script>
+</body>
+</html>
