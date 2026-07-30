@@ -433,7 +433,7 @@
   }
 
   // =========================================================
-  // ORDERS SECTION
+  // ORDERS SECTION (UPDATED WITH ITEMS COLUMN)
   // =========================================================
 
   async function renderOrders() {
@@ -445,12 +445,23 @@
     });
     $("#orderTable").innerHTML = filtered.length ? `
       <table>
-        <thead><tr><th>Order</th><th>Customer</th><th>Pickup</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead>
+        <thead><tr><th>Order</th><th>Customer</th><th>Pickup</th><th>Items</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead>
         <tbody>${filtered.map(o => `
           <tr>
             <td><strong>${escapeHtml(o.order_number)}</strong><small class="muted" style="display:block">${dateText(o.created_at)}</small></td>
             <td>${escapeHtml(o.customer_name)}<small class="muted" style="display:block">${escapeHtml(o.contact_number)}</small></td>
             <td>${escapeHtml(o.pickup_date)}<small class="muted" style="display:block">${escapeHtml(o.pickup_time)}</small></td>
+            
+            <!-- NEW ITEMS COLUMN -->
+            <td>
+              ${(o.order_items || []).map(item => `
+                <div style="font-size:0.82rem; display:flex; justify-content:space-between; gap:8px; border-bottom:1px dashed #edf1ee; padding:3px 0;">
+                  <span>${escapeHtml(item.name_at_order)}</span>
+                  <span style="font-weight:800; color:var(--green-800);">× ${item.quantity}</span>
+                </div>
+              `).join('') || `<span class="muted" style="font-style:italic;">No items</span>`}
+            </td>
+
             <td>${money(o.total)}</td>
             <td><select data-order-status="${o.id}" style="min-width:150px">${STATUS_OPTIONS.map(status => `<option value="${status}" ${status === o.status ? "selected" : ""}>${status}</option>`).join("")}</select></td>
             <td>
@@ -779,10 +790,6 @@
     } else {
       showLogin();
     }
-
-
-
-    
   })();
 
 })();

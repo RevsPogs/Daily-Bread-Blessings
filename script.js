@@ -9,7 +9,7 @@
   }
 
   // Only cart is stored in localStorage
-  const KEYS = { cart: "dbb_cart" };
+  const KEYS = { cart: "dbb_cart", notifications: "dbb_notifications" };
 
   // Hardcoded initial data (fallback if database is empty)
   const initialCategories = ["Bread", "Pizza", "Cookies", "Drinks"];
@@ -302,22 +302,17 @@
     const { error: itemsError } = await supabase.from('order_items').insert(orderItems);
     if (itemsError) throw itemsError;
 
-    // FIX: Decrease stock directly by fetching and updating (No custom SQL RPC needed!)
+    // Decrease stock safely
     for (const item of cartItems) {
-      // Fetch current stock
       const { data: prodData, error: fetchError } = await supabase
         .from('products')
         .select('stock')
         .eq('id', item.productId)
         .single();
       if (fetchError) throw fetchError;
-      
-      // Ensure enough stock
       if (!prodData || prodData.stock < item.quantity) {
         throw new Error(`Not enough stock for product ${item.productId}`);
       }
-      
-      // Calculate new stock and update
       const newStock = prodData.stock - item.quantity;
       const { error: updateError } = await supabase
         .from('products')
@@ -349,7 +344,7 @@
 
   function productVisual(product, className = "product-art") {
     return product.image_url
-      ? `<img src="${product.image_url}" alt="${escapeHtml(product.name)}">`
+      ? `<img src="${product.image_url}" alt="${escapeHtml(product.name)}" loading="lazy">`
       : `<span class="${className}" aria-hidden="true">${product.emoji || "🥐"}</span>`;
   }
 
@@ -359,7 +354,7 @@
       const visual = categoryVisuals[category];
       return `
         <button class="filter-btn ${category === activeCategory ? "active" : ""} ${visual ? "has-thumb" : ""}" data-category="${escapeHtml(category)}">
-          ${visual ? `<img src="${visual}" alt="${escapeHtml(category)}">` : ""}
+          ${visual ? `<img src="${visual}" alt="${escapeHtml(category)}" loading="lazy">` : ""}
           <span>${escapeHtml(category)}</span>
         </button>
       `;
@@ -545,9 +540,6 @@
     elements.orderConfirmation.classList.add("hidden");
     $("#checkoutTitle").textContent = "Checkout";
     $("#confirmStep").classList.remove("active");
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    $("#pickupDate").min = tomorrow.toISOString().split("T")[0];
 
     elements.checkoutReview.innerHTML = cart.map(item => {
       const product = productsCache.find(entry => entry.id === item.productId);
@@ -631,12 +623,19 @@
       return;
     }
 
+    // Pickup date is automatically set to Today (USING LOCAL TIME)
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const todayDate = `${year}-${month}-${day}`;
+
     const order = {
       orderNumber: makeOrderNumber(),
       customerName: $("#customerName").value.trim(),
       contactNumber: $("#customerContact").value.trim(),
       email: $("#customerEmail").value.trim(),
-      pickupDate: $("#pickupDate").value,
+      pickupDate: todayDate, // Automatically set to today
       pickupTime: $("#pickupTime").value,
       paymentMethod: $("#paymentMethod").value,
       notes: $("#orderNotes").value.trim(),
@@ -650,6 +649,15 @@
 
     try {
       await submitOrderToDB(order, cartItems);
+
+      // --- NEW: SAVE ORDER FOR NOTIFICATIONS ---
+      const notifs = getNotifications();
+      if (!notifs.find(n => n.order === order.orderNumber)) {
+        notifs.push({ order: order.orderNumber, email: order.email, status: 'pending' });
+        saveNotifications(notifs);
+      }
+      // -----------------------------------------
+
       cart = [];
       storageSetRaw(KEYS.cart, JSON.stringify(cart));
       renderCart();
@@ -668,7 +676,90 @@
   }
 
   // =========================================================
-  // NEW RATE YOUR ORDER LOGIC (Unlocked only on COMPLETED status)
+  // NEW: NOTIFICATION SYSTEM (Live Status Polling)
+  // =========================================================
+  
+  function getNotifications() {
+    try { return JSON.parse(storageGetRaw(KEYS.notifications)) || []; } catch { return []; }
+  }
+  function saveNotifications(list) {
+    storageSetRaw(KEYS.notifications, JSON.stringify(list));
+  }
+
+  async function pollOrderStatuses() {
+    const notifs = getNotifications();
+    const dot = document.getElementById('notifDot');
+
+    // Update UI Dot
+    if (notifs.some(n => n.status === 'completed')) {
+      dot.classList.remove('hidden');
+    } else {
+      dot.classList.add('hidden');
+    }
+
+    if (notifs.length === 0) return;
+
+    let changed = false;
+    for (let i = 0; i < notifs.length; i++) {
+      if (notifs[i].status === 'completed') continue;
+      
+      const { data, error } = await supabase.from('orders').select('status').eq('order_number', notifs[i].order).eq('email', notifs[i].email).maybeSingle();
+      if (error || !data) continue;
+
+      if (data.status === 'completed') {
+        notifs[i].status = 'completed';
+        changed = true;
+        showToast(`🎉 Order ${notifs[i].order} is ready for pickup! Click the 🔔 Bell to rate now!`);
+      }
+    }
+
+    if (changed) {
+      saveNotifications(notifs);
+      // Re-run to update the dot immediately
+      const updatedUnread = notifs.filter(n => n.status === 'completed');
+      if (updatedUnread.length > 0) {
+        document.getElementById('notifDot').classList.remove('hidden');
+      }
+    }
+  }
+
+  function initNotificationSystem() {
+    const bell = document.getElementById('notificationBell');
+    const dot = document.getElementById('notifDot');
+
+    bell.addEventListener('click', async () => {
+      const notifs = getNotifications();
+      const completed = notifs.filter(n => n.status === 'completed');
+      
+      if (completed.length === 0) {
+        showToast("You have no new notifications.");
+        return;
+      }
+
+      // Grab the first completed order and auto-fill the Rate Order modal
+      const target = completed[0];
+      
+      // Fill the fields
+      document.getElementById('rateOrderNumber').value = target.order;
+      document.getElementById('rateOrderEmail').value = target.email;
+      
+      // Open the modal
+      openLayer(document.getElementById('rateOrderModal'));
+
+      // Automatically trigger the "Find My Order" click after a tiny delay
+      setTimeout(() => {
+        document.getElementById('checkOrderForRating').click();
+      }, 400);
+
+      // Remove it from the list so the dot disappears next poll
+      const updatedNotifs = notifs.filter(n => n.order !== target.order);
+      saveNotifications(updatedNotifs);
+      dot.classList.add('hidden');
+    });
+  }
+
+  // =========================================================
+  // RATE YOUR ORDER LOGIC (Unlocked only on COMPLETED status)
   // =========================================================
   function initRateOrderSystem() {
     const modal = document.getElementById('rateOrderModal');
@@ -686,7 +777,6 @@
     let selectedRating = 0;
     let foundOrderNumber = "";
 
-    // Helper to open the modal
     const openRateModal = () => {
       lookupDiv.classList.remove('hidden');
       resultDiv.classList.add('hidden');
@@ -701,11 +791,9 @@
       openLayer(modal);
     };
 
-    // Event listeners to open modal
     document.getElementById('rateOrderNavButton').addEventListener('click', openRateModal);
     document.getElementById('rateOrderFooterLink').addEventListener('click', (e) => { e.preventDefault(); openRateModal(); });
 
-    // Star selection
     starsContainer.addEventListener('click', (e) => {
       const btn = e.target.closest('[data-rating]');
       if (!btn) return;
@@ -717,7 +805,6 @@
       textDisplay.textContent = `You rated ${selectedRating} out of 5`;
     });
 
-    // Check Order
     checkBtn.addEventListener('click', async () => {
       const number = document.getElementById('rateOrderNumber').value.trim();
       const email = document.getElementById('rateOrderEmail').value.trim();
@@ -741,7 +828,6 @@
         resultDiv.classList.remove('hidden');
         foundOrderNumber = data.order_number;
 
-        // Display order info
         detailsDiv.innerHTML = `
           <div class="form-modal-grid" style="background: #f9fcfb; padding: 15px; border-radius: 12px; margin-bottom: 15px;">
             <p><strong>Order:</strong><br>${escapeHtml(data.order_number)}</p>
@@ -751,7 +837,6 @@
           </div>
         `;
 
-        // Check if status is "completed"
         if (data.status.toLowerCase() === 'completed') {
           formContainer.classList.remove('hidden');
           thankYouDiv.classList.add('hidden');
@@ -774,7 +859,6 @@
       }
     });
 
-    // Submit Rating
     submitBtn.addEventListener('click', async () => {
       if (!foundOrderNumber) return showToast("No order found.");
       if (selectedRating === 0) return showToast("Please select a star rating.");
@@ -831,21 +915,16 @@
     $("#contactText").textContent = email ? `${phone} · ${email}` : phone;
     
     const fbLink = content.facebook || "#";
-    // Update footer
     $("#socialLinks").innerHTML = `
       <a href="${fbLink}" aria-label="Facebook">f</a>
       <a href="${content.instagram || "#"}" aria-label="Instagram">◎</a>
       <a href="${content.tiktok || "#"}" aria-label="TikTok">♪</a>`;
-      
-    // Update contact page Facebook card
     const fbContact = document.getElementById("facebookContactText");
-    if (fbContact) {
-      fbContact.href = fbLink;
-    }
+    if (fbContact) fbContact.href = fbLink;
   }
 
   // =========================================================
-  // AUDIO / INTRO / MOTION SYSTEM
+  // AUDIO / INTRO / MOTION SYSTEM (FULLY EXPANDED)
   // =========================================================
 
   function createIntroAudioController(toggleButton) {
@@ -1005,8 +1084,8 @@
     if (!intro || !enterButton) { document.body.classList.remove("intro-active"); return; }
     intro.dataset.introController = "active";
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const readyDelay = reduceMotion ? 0 : 1800;
-    const exitDuration = reduceMotion ? 20 : 980;
+    const readyDelay = reduceMotion ? 0 : 1500;
+    const exitDuration = reduceMotion ? 20 : 700;
     const audio = createIntroAudioController(soundToggle);
     let readyTimer;
     let hasEntered = false;
@@ -1125,7 +1204,7 @@
     const destination = $("#cartButton").getBoundingClientRect();
     const flyer = document.createElement("div");
     flyer.className = "fly-to-cart";
-    if (product.image_url) flyer.innerHTML = `<img src="${product.image_url}" alt="${escapeHtml(product.name)}">`;
+    if (product.image_url) flyer.innerHTML = `<img src="${product.image_url}" alt="${escapeHtml(product.name)}" loading="lazy">`;
     else flyer.textContent = product.emoji || "🥐";
     flyer.style.left = `${start.left + start.width / 2 - 27}px`;
     flyer.style.top = `${start.top + start.height / 2 - 27}px`;
@@ -1208,8 +1287,13 @@
       initializeMotionSystem();
       initializeFoodRain();
       
-      // NEW: Initialize the Rate Your Order system
       initRateOrderSystem();
+      initNotificationSystem(); // Initialize the Notification Bell
+
+      // Poll the server for order status changes every 15 seconds
+      setInterval(pollOrderStatuses, 15000);
+      // Poll immediately on load
+      await pollOrderStatuses();
 
     } catch (error) {
       console.error("Daily Bread Blessings failed to initialize:", error);

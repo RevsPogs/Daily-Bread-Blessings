@@ -6,20 +6,23 @@
   <meta name="description" content="Daily Bread Blessings offers freshly baked brioche, pizza, and chocolate lava crinkle cookies. From Oven to Opportunity.">
   <title>Daily Bread Blessings | From Oven to Opportunity</title>
   <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css?v=final-complete-7">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=optimized">
 </head>
 <body class="intro-active">
-  <!-- Intro Screen (unchanged) -->
+  <!-- Intro Screen (optimized with fewer animations on mobile) -->
   <div class="intro-screen" id="introScreen" role="dialog" aria-modal="true" aria-labelledby="introTitle" aria-describedby="introTagline">
-    <audio id="introWelcomeAudio" preload="auto" playsinline>
+    <audio id="introWelcomeAudio" preload="none" playsinline>
       <source src="assets/opening-chime.mp3" type="audio/mpeg">
       <source src="assets/opening-chime.wav" type="audio/wav">
     </audio>
-    <audio id="introReadyAudio" preload="auto" playsinline>
+    <audio id="introReadyAudio" preload="none" playsinline>
       <source src="assets/ready-chime.mp3" type="audio/mpeg">
       <source src="assets/ready-chime.wav" type="audio/wav">
     </audio>
-    <audio id="introEnterAudio" preload="auto" playsinline>
+    <audio id="introEnterAudio" preload="none" playsinline>
       <source src="assets/enter-whoosh.mp3" type="audio/mpeg">
       <source src="assets/enter-whoosh.wav" type="audio/wav">
     </audio>
@@ -57,16 +60,17 @@
   </div>
 
   <script>
-    // Intro screen script (unchanged)
+    // Optimized intro – reduced delay and smoother exit
     (() => {
       const intro = document.getElementById("introScreen");
       const enterButton = document.getElementById("enterWebsite");
       if (!intro || !enterButton) return;
+      // Use shorter delay for faster entry
       window.setTimeout(() => {
         if (intro.dataset.introController === "active") return;
         intro.classList.add("is-ready");
         enterButton.disabled = false;
-      }, 1900);
+      }, 1500); // reduced from 1900
       enterButton.addEventListener("click", () => {
         if (intro.dataset.introController === "active") return;
         if (enterButton.disabled) return;
@@ -77,7 +81,7 @@
           intro.remove();
           document.body.classList.remove("intro-active");
           window.scrollTo(0, 0);
-        }, 900);
+        }, 700); // faster exit
       });
     })();
   </script>
@@ -88,7 +92,7 @@
   <header class="site-header">
     <div class="container nav-wrap">
       <a class="brand" href="#home" aria-label="Daily Bread Blessings home">
-        <img src="assets/logo.svg" alt="Daily Bread Blessings logo">
+        <img src="assets/logo.svg" alt="Daily Bread Blessings logo" width="62" height="62">
         <span class="brand-copy">Daily Bread Blessings<small>FROM OVEN TO OPPORTUNITY</small></span>
       </a>
       <nav class="nav-links" id="navLinks" aria-label="Primary navigation">
@@ -96,8 +100,8 @@
       </nav>
       <div class="nav-actions">
         <button class="icon-btn" id="cartButton" aria-label="Open shopping cart">🛒 <span class="cart-count" id="cartCount">0</span></button>
-        <!-- NEW: Rate Order Button -->
         <button class="icon-btn" id="rateOrderNavButton" aria-label="Rate your order">⭐</button>
+        <button class="icon-btn" id="notificationBell" aria-label="Notifications">🔔 <span class="notification-dot hidden" id="notifDot"></span></button>
         <button class="menu-btn" id="menuButton" aria-label="Open navigation menu">☰</button>
       </div>
     </div>
@@ -114,12 +118,11 @@
           <div class="hero-points"><span>✓ Freshly prepared</span><span>✓ Student-made</span><span>✓ Pickup-friendly</span></div>
         </div>
         <div class="hero-visual" aria-label="Daily Bread Blessings brand showcase">
-          <div class="floating-card fc-1"><img src="assets/Custard Brioche.jpg" alt="Fresh brioche bites"><div><strong>Fresh brioche</strong><small>Soft, buttery, and golden</small></div></div>
-          <div class="floating-card fc-2"><img src="assets/Pizza.jpg" alt="Savory pepperoni mini pizza"><div><strong>Savory pizza</strong><small>Cheesy, rich, and satisfying</small></div></div>
-          <div class="floating-card fc-3"><img src="assets/Chocolate Lava Crinkles.jpg" alt="Chocolate lava crinkles"><div><strong>Lava crinkles</strong><small>Chocolatey and gift-ready</small></div></div>
-          <!-- UPDATED MOCKTAIL CARD BELOW -->
-          <div class="floating-card fc-4"><img src="assets/strawberry-blizz-fizz.jpg" alt="Strawberry Blizz Fizz poster"><div><strong>Strawberry Blizz Fizz</strong><small>Taste the fizz, feel the freeze - strawberry blizz fizz for your refreshment needs!</small></div></div>
-          <img class="hero-logo" src="assets/logo.svg" alt="Daily Bread Blessings circular bakery badge">
+          <div class="floating-card fc-1"><img src="assets/Custard%20Brioche.jpg" alt="Fresh brioche bites" loading="lazy"><div><strong>Fresh brioche</strong><small>Soft, buttery, and golden</small></div></div>
+          <div class="floating-card fc-2"><img src="assets/Pizza.jpg" alt="Savory pepperoni mini pizza" loading="lazy"><div><strong>Savory pizza</strong><small>Cheesy, rich, and satisfying</small></div></div>
+          <div class="floating-card fc-3"><img src="assets/Chocolate%20Lava%20Crinkles.jpg" alt="Chocolate lava crinkles" loading="lazy"><div><strong>Lava crinkles</strong><small>Chocolatey and gift-ready</small></div></div>
+          <div class="floating-card fc-4"><img src="assets/strawberry-blizz-fizz.jpg" alt="Strawberry Blizz Fizz poster" loading="lazy"><div><strong>Strawberry Blizz Fizz</strong><small>Taste the fizz, feel the freeze</small></div></div>
+          <img class="hero-logo" src="assets/logo.svg" alt="Daily Bread Blessings circular bakery badge" loading="lazy">
         </div>
       </div>
     </section>
@@ -135,7 +138,7 @@
 
     <section class="section" id="about">
       <div class="container about-grid">
-        <div class="about-art"><img src="assets/logo.svg" alt="Daily Bread Blessings bakery emblem"><div class="about-card"><strong>Our purpose</strong>We turn every batch into practical skills, shared success, and new business opportunities.</div></div>
+        <div class="about-art"><img src="assets/logo.svg" alt="Daily Bread Blessings bakery emblem" loading="lazy"><div class="about-card"><strong>Our purpose</strong>We turn every batch into practical skills, shared success, and new business opportunities.</div></div>
         <div><p class="eyebrow">More than a bakery</p><h2>From classroom skills to customer smiles.</h2><p class="muted" id="businessDescription">Daily Bread Blessings is a student entrepreneurship group built around homemade quality, responsible teamwork, and creative baking. Every order helps students practice production, customer service, financial discipline, and business management.</p>
           <div class="feature-list">
             <div class="feature-item"><div class="feature-icon">🌱</div><div><h3>Growth through experience</h3><p class="muted">Students build confidence by managing real products, orders, and customer needs.</p></div></div>
@@ -184,8 +187,6 @@
             <div class="contact-card"><div>📍</div><div><strong>Location</strong><span id="locationText">Oriental Mindoro National High School (OMNHS)</span></div></div>
             <div class="contact-card"><div>🕒</div><div><strong>Store schedule</strong><span id="scheduleText">Junior High - 1:30PM - 2:00PM Senior High - 2:00PM - 2:30PM</span></div></div>
             <div class="contact-card"><div>☎</div><div><strong>Contact</strong><span id="contactText">0965 296 4107</span></div></div>
-            
-            <!-- UPDATED FACEBOOK CONTACT CARD -->
             <div class="contact-card">
               <div style="display: grid; place-items: center;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#1877F2">
@@ -213,12 +214,11 @@
     </section>
   </main>
 
-  <!-- FIXED FOOTER: Added Rate Your Order link -->
   <footer class="site-footer">
     <div class="container">
       <div class="footer-grid">
         <div class="footer-brand">
-          <img src="assets/logo.svg" alt="Daily Bread Blessings logo">
+          <img src="assets/logo.svg" alt="Daily Bread Blessings logo" loading="lazy">
           <p>Freshly baked products powered by student creativity, teamwork, and entrepreneurship.</p>
         </div>
         <div>
@@ -267,7 +267,6 @@
     <div class="modal-dialog"><div class="modal-head"><h3>Product Details</h3><button class="icon-btn" data-close="product" aria-label="Close product details">✕</button></div><div class="modal-body" id="productDetail"></div></div>
   </div>
 
-  <!-- CHECKOUT MODAL (Rating form removed) -->
   <div class="modal" id="checkoutModal" aria-hidden="true"><div class="overlay" data-close="checkout"></div>
     <div class="modal-dialog"><div class="modal-head"><h3 id="checkoutTitle">Checkout</h3><button class="icon-btn" data-close="checkout" aria-label="Close checkout">✕</button></div>
       <div class="modal-body">
@@ -277,16 +276,12 @@
             <div class="form-group"><label for="customerName">Full name</label><input id="customerName" required></div>
             <div class="form-group"><label for="customerContact">Contact number</label><input id="customerContact" required pattern="[0-9+\-\s]{7,20}"></div>
             <div class="form-group"><label for="customerEmail">Email address</label><input id="customerEmail" type="email"></div>
-            <div class="form-group"><label for="pickupDate">Pickup date</label><input id="pickupDate" type="date" required></div>
             <div class="form-group"><label for="pickupTime">Pickup time</label><select id="pickupTime" required>
               <option value="">Select time</option>
-              <option>9:00 AM</option>
-              <option>11:00 AM</option>
-              <option>1:00 PM</option>
-              <option>1:30 PM - 2:00 PM (Recess)</option>
-              <option>2:30 PM - 3:00 PM (Recess)</option>
+              <option>1:30 PM</option>
+              <option>2:00 PM</option>
+              <option>2:30 PM</option>
               <option>3:00 PM</option>
-              <option>5:00 PM</option>
             </select></div>
             <div class="form-group"><label for="paymentMethod">Payment method</label><select id="paymentMethod" required><option>Cash on pickup</option><option>GCash</option></select></div>
             <div class="form-group full"><label for="orderNotes">Order notes</label><textarea id="orderNotes" placeholder="Allergies, packaging requests, or other notes"></textarea></div>
@@ -294,12 +289,10 @@
             <div class="form-group full"><button class="btn btn-block" type="submit">Submit Order</button></div>
           </div>
         </form>
-        
-        <!-- ORDER CONFIRMATION (No rating form here anymore) -->
         <div class="confirmation hidden" id="orderConfirmation">
           <div class="confirmation-icon">✓</div>
-          <h2>Order received.</h2>
-          <p class="muted">Keep your order number for pickup and follow-up.</p>
+          <h2>Order Placed!</h2>
+          <p class="muted">Your order is currently pending. Keep your order number for pickup and follow-up.</p>
           <div class="order-number" id="confirmationNumber"></div>
           <div id="confirmationDetails"></div>
           <button class="btn" data-close="checkout" style="margin-top: 20px;">Continue Shopping</button>
@@ -308,13 +301,11 @@
     </div>
   </div>
 
-  <!-- NEW MODAL: RATE YOUR ORDER -->
   <div class="modal" id="rateOrderModal" aria-hidden="true">
     <div class="overlay" data-close="rateOrder"></div>
     <div class="modal-dialog">
       <div class="modal-head"><h3>Rate Your Order</h3><button class="icon-btn" data-close="rateOrder">✕</button></div>
       <div class="modal-body">
-        <!-- Step 1: Lookup form -->
         <div id="rateOrderLookup">
           <p class="muted">Enter the order number and email used to place your order.</p>
           <div class="form-grid">
@@ -323,12 +314,8 @@
           </div>
           <button class="btn btn-block" id="checkOrderForRating">Find My Order</button>
         </div>
-
-        <!-- Step 2: Result container -->
         <div id="rateOrderResult" class="hidden">
           <div id="rateOrderDetails"></div>
-          
-          <!-- Rating Form (Initially hidden) -->
           <div id="rateOrderFormContainer" class="hidden">
             <div class="order-rating-card" style="margin-top: 20px;">
               <h3>How was your experience?</h3>
@@ -347,8 +334,6 @@
               <button class="btn btn-block" id="submitRateOrderBtn">Submit Rating</button>
             </div>
           </div>
-          
-          <!-- Thank You Message (Initially hidden) -->
           <div class="rating-thank-you hidden" id="rateOrderThankYou">
             <span>⭐</span>
             <strong>Thank you for your feedback!</strong>
@@ -359,13 +344,13 @@
     </div>
   </div>
 
-  <audio id="siteBackgroundMusic" preload="auto" loop playsinline>
+  <audio id="siteBackgroundMusic" preload="none" loop playsinline>
     <source src="assets/bakery-chill-loop.mp3" type="audio/mpeg">
     <source src="assets/bakery-chill-loop.wav" type="audio/wav">
   </audio>
   <section class="site-music-player" id="siteMusicPlayer" aria-label="Bakery chill music player">
     <button class="site-music-main" id="siteMusicToggle" type="button" aria-pressed="false" aria-label="Play relaxing bakery music">
-      <span class="site-music-disc" aria-hidden="true"><img src="assets/logo.svg" alt=""></span>
+      <span class="site-music-disc" aria-hidden="true"><img src="assets/logo.svg" alt="" loading="lazy"></span>
       <span class="site-music-copy"><strong>Bakery Chill</strong><small id="siteMusicStatus">Relax music is ready</small></span>
       <span class="site-music-equalizer" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
       <span class="site-music-play-icon" id="siteMusicPlayIcon" aria-hidden="true">▶</span>
@@ -379,18 +364,12 @@
 
   <div class="toast" id="toast" role="status"></div>
 
-  <!-- ========================================================= -->
-  <!-- SUPABASE SDK -->
-  <!-- ========================================================= -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    // ----------------------------------------------------------
-    // PASTE YOUR SUPABASE URL AND ANON KEY BELOW:
     const SUPABASE_URL = 'https://xxpxrmpbzuknwqbqwrir.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4cHhybXBienVrbndxYnF3cmlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMzkyOTUsImV4cCI6MjEwMDkxNTI5NX0.Qme4kazqrrtm6OJUDk2zy5Hz-9EadENpAY6YjobythQ';
-    // ----------------------------------------------------------
     window.__SUPABASE = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   </script>
-  <script src="script.js?v=final-complete-7"></script>
+  <script src="script.js?v=optimized"></script>
 </body>
 </html>
