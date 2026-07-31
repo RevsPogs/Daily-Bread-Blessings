@@ -267,7 +267,7 @@
     <div class="modal-dialog"><div class="modal-head"><h3>Product Details</h3><button class="icon-btn" data-close="product" aria-label="Close product details">✕</button></div><div class="modal-body" id="productDetail"></div></div>
   </div>
 
-  <!-- UPDATED CHECKOUT MODAL: Email & Date removed, Section & Building added -->
+  <!-- CHECKOUT MODAL -->
   <div class="modal" id="checkoutModal" aria-hidden="true"><div class="overlay" data-close="checkout"></div>
     <div class="modal-dialog"><div class="modal-head"><h3 id="checkoutTitle">Checkout</h3><button class="icon-btn" data-close="checkout" aria-label="Close checkout">✕</button></div>
       <div class="modal-body">
@@ -276,11 +276,8 @@
           <div class="form-grid">
             <div class="form-group"><label for="customerName">Full name</label><input id="customerName" required></div>
             <div class="form-group"><label for="customerContact">Contact number</label><input id="customerContact" required pattern="[0-9+\-\s]{7,20}"></div>
-            
-            <!-- NEW FIELDS: Section and Building Name -->
             <div class="form-group"><label for="customerSection">Section</label><input id="customerSection" required placeholder="e.g. Grade 10 - A"></div>
             <div class="form-group"><label for="customerBuilding">Building / Location</label><input id="customerBuilding" required placeholder="e.g. TVL Laboratory"></div>
-
             <div class="form-group"><label for="pickupTime">Pickup time</label><select id="pickupTime" required>
               <option value="">Select time</option>
               <option>1:30 PM</option>
@@ -307,16 +304,18 @@
     </div>
   </div>
 
+  <!-- UPDATED RATE ORDER MODAL (ID fixed to rateOrderContact) -->
   <div class="modal" id="rateOrderModal" aria-hidden="true">
     <div class="overlay" data-close="rateOrder"></div>
     <div class="modal-dialog">
       <div class="modal-head"><h3>Rate Your Order</h3><button class="icon-btn" data-close="rateOrder">✕</button></div>
       <div class="modal-body">
         <div id="rateOrderLookup">
-          <p class="muted">Enter the order number and email used to place your order.</p>
+          <p class="muted">Enter the order number and contact number used to place your order.</p>
           <div class="form-grid">
             <div class="form-group"><label for="rateOrderNumber">Order Number</label><input id="rateOrderNumber" placeholder="DBB-2026XXXX-XXXX"></div>
-            <div class="form-group"><label for="rateOrderEmail">Email Address</label><input id="rateOrderEmail" type="email"></div>
+            <!-- FIX: Changed ID from rateOrderEmail to rateOrderContact -->
+            <div class="form-group"><label for="rateOrderContact">Contact Number</label><input id="rateOrderContact" type="text" placeholder="09123456789"></div>
           </div>
           <button class="btn btn-block" id="checkOrderForRating">Find My Order</button>
         </div>

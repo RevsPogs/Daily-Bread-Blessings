@@ -269,7 +269,6 @@
   }
 
   async function submitOrderToDB(order, cartItems) {
-    // Insert Order (Email completely removed)
     const { data: orderData, error: orderError } = await supabase.from('orders').insert({
       order_number: order.orderNumber,
       customer_name: order.customerName,
@@ -285,36 +284,18 @@
     }).select().single();
     if (orderError) throw orderError;
 
-    // Insert Order Items
-    const orderItems = cartItems.map(item => ({
-      order_id: orderData.id,
-      product_id: item.productId,
-      name_at_order: item.name,
-      price_at_order: item.price,
-      quantity: item.quantity
-    }));
+    const orderItems = cartItems.map(item => ({ order_id: orderData.id, product_id: item.productId, name_at_order: item.name, price_at_order: item.price, quantity: item.quantity }));
     const { error: itemsError } = await supabase.from('order_items').insert(orderItems);
     if (itemsError) throw itemsError;
 
-    // Decrease stock safely
     for (const item of cartItems) {
-      const { data: prodData, error: fetchError } = await supabase
-        .from('products')
-        .select('stock')
-        .eq('id', item.productId)
-        .single();
+      const { data: prodData, error: fetchError } = await supabase.from('products').select('stock').eq('id', item.productId).single();
       if (fetchError) throw fetchError;
-      if (!prodData || prodData.stock < item.quantity) {
-        throw new Error(`Not enough stock for product ${item.productId}`);
-      }
+      if (!prodData || prodData.stock < item.quantity) throw new Error(`Not enough stock for product ${item.productId}`);
       const newStock = prodData.stock - item.quantity;
-      const { error: updateError } = await supabase
-        .from('products')
-        .update({ stock: newStock })
-        .eq('id', item.productId);
+      const { error: updateError } = await supabase.from('products').update({ stock: newStock }).eq('id', item.productId);
       if (updateError) throw updateError;
     }
-
     return orderData;
   }
 
@@ -603,12 +584,11 @@
     window.setInterval(spawnFood, 5000);
   }
 
-  // --- FIXED: Duplicate order bug prevents double submitting ---
   let isSubmitting = false;
 
   async function submitOrder(event) {
     event.preventDefault();
-    if (isSubmitting) return; // Prevents double-clicking duplicates
+    if (isSubmitting) return;
     if (!cart.length) return;
 
     const stockIssue = cart.find(item => { const product = productsCache.find(entry => entry.id === item.productId); return !product || item.quantity > product.stock || !product.available; });
@@ -622,7 +602,6 @@
     const day = String(now.getDate()).padStart(2, '0');
     const todayDate = `${year}-${month}-${day}`;
 
-    // Email completely removed!
     const order = {
       orderNumber: makeOrderNumber(),
       customerName: $("#customerName").value.trim(),
@@ -641,7 +620,6 @@
     try {
       await submitOrderToDB(order, cartItems);
       
-      // Store notification with Contact Number instead of Email
       const notifs = getNotifications();
       if (!notifs.find(n => n.order === order.orderNumber)) {
         notifs.push({ order: order.orderNumber, contact: order.contactNumber, status: 'pending' });
@@ -658,7 +636,7 @@
     } catch (error) {
       showToast("Error placing order: " + error.message);
     } finally {
-      isSubmitting = false; // Reset flag so they can try again if needed
+      isSubmitting = false;
     }
   }
 
@@ -676,7 +654,6 @@
     let changed = false;
     for (let i = 0; i < notifs.length; i++) {
       if (notifs[i].status === 'completed') continue;
-      // Lookup by Order Number AND Contact Number
       const { data, error } = await supabase.from('orders').select('status').eq('order_number', notifs[i].order).eq('contact_number', notifs[i].contact).maybeSingle();
       if (error || !data) continue;
       if (data.status === 'completed') {
@@ -700,10 +677,9 @@
       const completed = notifs.filter(n => n.status === 'completed');
       if (completed.length === 0) { showToast("You have no new notifications."); return; }
       const target = completed[0];
-      
-      // NOTE: Change ID in your HTML from "rateOrderEmail" to "rateOrderContact" 
       document.getElementById('rateOrderNumber').value = target.order;
-      document.getElementById('rateOrderContact').value = target.contact; 
+      const contactInput = document.getElementById('rateOrderContact');
+      if(contactInput) contactInput.value = target.contact; 
       
       openLayer(document.getElementById('rateOrderModal'));
       setTimeout(() => { document.getElementById('checkOrderForRating').click(); }, 400);
@@ -740,7 +716,8 @@
       selectedRating = 0;
       foundOrderNumber = "";
       document.getElementById('rateOrderNumber').value = "";
-      document.getElementById('rateOrderContact').value = "";
+      const contactInput = document.getElementById('rateOrderContact');
+      if(contactInput) contactInput.value = "";
       starsContainer.querySelectorAll('button').forEach(b => b.classList.remove('is-selected'));
       textDisplay.textContent = "Tap a star to rate";
       openLayer(modal);
@@ -762,14 +739,17 @@
 
     checkBtn.addEventListener('click', async () => {
       const number = document.getElementById('rateOrderNumber').value.trim();
-      // Using Contact Number instead of Email
-      const contact = document.getElementById('rateOrderContact').value.trim();
+      const contactInput = document.getElementById('rateOrderContact');
+      if(!contactInput) {
+        showToast("Error: Contact Number input field not found.");
+        return;
+      }
+      const contact = contactInput.value.trim();
       if (!number || !contact) return showToast("Please enter both Order Number and Contact Number.");
 
       checkBtn.disabled = true;
       checkBtn.textContent = "Searching...";
       try {
-        // Lookup by Order Number AND Contact Number
         const { data, error } = await supabase.from('orders').select('*').eq('order_number', number).eq('contact_number', contact).maybeSingle();
         if (error) throw error;
         if (!data) {
