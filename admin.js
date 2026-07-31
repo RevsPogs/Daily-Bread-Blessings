@@ -138,6 +138,12 @@
     if (error) throw error;
   }
 
+  // NEW: Helper to update Section and Building
+  async function updateOrderDetailsInDB(id, section, buildingName) {
+    const { error } = await supabase.from('orders').update({ section, building_name: buildingName }).eq('id', id);
+    if (error) throw error;
+  }
+
   async function deleteOrderFromDB(id) {
     const { data, error } = await supabase.from('orders').delete().eq('id', id).select('id');
     if (error) {
@@ -431,7 +437,7 @@
   }
 
   // =========================================================
-  // ORDERS SECTION (UPDATED WITH SECTION & BUILDING COLUMNS)
+  // ORDERS SECTION (UPDATED WITH EDIT BUTTON)
   // =========================================================
 
   async function renderOrders() {
@@ -463,6 +469,7 @@
             <td><select data-order-status="${o.id}" style="min-width:150px">${STATUS_OPTIONS.map(status => `<option value="${status}" ${status === o.status ? "selected" : ""}>${status}</option>`).join("")}</select></td>
             <td>
               <div class="action-row">
+                <button class="btn btn-outline btn-sm" data-edit-order="${o.id}">Edit</button>
                 <button class="btn btn-outline btn-sm" data-view-order="${o.id}">View</button>
                 <button class="btn btn-danger btn-sm" data-delete-order="${o.id}">Delete</button>
               </div>
@@ -478,6 +485,36 @@
       showToast("Order status updated.");
     } catch (error) {
       showToast("Error updating status: " + error.message);
+    }
+  }
+
+  // NEW: Logic to Edit Order Details (Section / Building)
+  async function editOrderDetails(id) {
+    const orders = await getOrders();
+    const order = orders.find(o => o.id === id);
+    if (!order) return;
+
+    $("#orderEditId").value = order.id;
+    $("#orderEditSection").value = order.section || "";
+    $("#orderEditBuilding").value = order.building_name || "";
+    openModal("orderEditModal");
+  }
+
+  async function saveOrderDetails(event) {
+    event.preventDefault();
+    const id = $("#orderEditId").value;
+    const section = $("#orderEditSection").value.trim();
+    const buildingName = $("#orderEditBuilding").value.trim();
+    
+    if (!id) return showToast("Invalid order ID.");
+    
+    try {
+      await updateOrderDetailsInDB(id, section, buildingName);
+      closeModal("orderEditModal");
+      await renderAll();
+      showToast("Order details updated.");
+    } catch (error) {
+      showToast("Error updating order details: " + error.message);
     }
   }
 
@@ -726,6 +763,7 @@
   $("#adminProductCategory").addEventListener("change", event => { productCategoryFilter = event.target.value; renderProducts(); });
   $("#orderSearch").addEventListener("input", event => { orderSearch = event.target.value; renderOrders(); });
   $("#orderStatusFilter").addEventListener("change", event => { orderStatusFilter = event.target.value; renderOrders(); });
+  $("#orderEditForm").addEventListener("submit", saveOrderDetails);
   
   document.getElementById('productImage').addEventListener('change', async (event) => {
     const file = event.target.files[0];
@@ -748,6 +786,7 @@
     const close = event.target.closest("[data-close-modal]");
     const editProductButton = event.target.closest("[data-edit-product]");
     const deleteProductButton = event.target.closest("[data-delete-product]");
+    const editOrderButton = event.target.closest("[data-edit-order]");
     const viewOrderButton = event.target.closest("[data-view-order]");
     const deleteOrderButton = event.target.closest("[data-delete-order]");
     const printOrderButton = event.target.closest("[data-print-order]");
@@ -759,6 +798,7 @@
     if (close) closeModal(close.dataset.closeModal);
     if (editProductButton) editProduct(editProductButton.dataset.editProduct);
     if (deleteProductButton) deleteProduct(deleteProductButton.dataset.deleteProduct);
+    if (editOrderButton) editOrderDetails(editOrderButton.dataset.editOrder);
     if (viewOrderButton) viewOrder(viewOrderButton.dataset.viewOrder);
     if (deleteOrderButton) deleteOrder(deleteOrderButton.dataset.deleteOrder);
     if (printOrderButton) printOrder(printOrderButton.dataset.printOrder);

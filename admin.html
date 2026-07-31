@@ -88,7 +88,6 @@
           <div class="panel"><div class="table-wrap" id="messageTable"></div></div>
         </section>
 
-        <!-- NEW REVIEWS SECTION -->
         <section class="admin-page" id="page-reviews">
           <div class="admin-heading"><div><h1>Customer Reviews</h1><p class="muted">View all verified customer ratings and feedback.</p></div></div>
           <div class="panel">
@@ -147,6 +146,24 @@
     <div class="modal-dialog">
       <div class="modal-head"><h3>Order Details</h3><button class="icon-btn" data-close-modal="orderModal">✕</button></div>
       <div class="modal-body" id="orderDetail"></div>
+    </div>
+  </div>
+
+  <!-- NEW ORDER EDIT MODAL -->
+  <div class="modal" id="orderEditModal" aria-hidden="true">
+    <div class="overlay" data-close-modal="orderEditModal"></div>
+    <div class="modal-dialog">
+      <div class="modal-head"><h3>Edit Order Details</h3><button class="icon-btn" data-close-modal="orderEditModal">✕</button></div>
+      <div class="modal-body">
+        <form id="orderEditForm">
+          <input type="hidden" id="orderEditId">
+          <div class="form-modal-grid">
+            <div class="form-group"><label for="orderEditSection">Section</label><input id="orderEditSection" placeholder="e.g. Grade 10 - A"></div>
+            <div class="form-group"><label for="orderEditBuilding">Building / Location</label><input id="orderEditBuilding" placeholder="e.g. TVL Laboratory"></div>
+          </div>
+          <button class="btn btn-block" type="submit">Save Changes</button>
+        </form>
+      </div>
     </div>
   </div>
 
