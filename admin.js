@@ -326,14 +326,12 @@
       </table>` : `<div class="empty-state"><span>🥐</span><strong>No products found.</strong></div>`;
   }
 
-  // NEW: Helper to render stars for admin reviews table
   function renderAdminStars(rating) {
     const full = "★".repeat(rating);
     const empty = "☆".repeat(5 - rating);
     return `<span style="color:#e8a800; letter-spacing:2px; font-size:1.1rem;">${full}${empty}</span>`;
   }
 
-  // NEW: Reviews Page Render Function
   async function renderReviews() {
     const ratings = await getRatings();
     $("#reviewsTable").innerHTML = ratings.length ? `
@@ -433,7 +431,7 @@
   }
 
   // =========================================================
-  // ORDERS SECTION (UPDATED WITH ITEMS COLUMN)
+  // ORDERS SECTION (UPDATED WITH SECTION & BUILDING COLUMNS)
   // =========================================================
 
   async function renderOrders() {
@@ -445,14 +443,14 @@
     });
     $("#orderTable").innerHTML = filtered.length ? `
       <table>
-        <thead><tr><th>Order</th><th>Customer</th><th>Pickup</th><th>Items</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead>
+        <thead><tr><th>Order</th><th>Customer</th><th>Section</th><th>Building</th><th>Pickup</th><th>Items</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead>
         <tbody>${filtered.map(o => `
           <tr>
             <td><strong>${escapeHtml(o.order_number)}</strong><small class="muted" style="display:block">${dateText(o.created_at)}</small></td>
             <td>${escapeHtml(o.customer_name)}<small class="muted" style="display:block">${escapeHtml(o.contact_number)}</small></td>
+            <td>${escapeHtml(o.section || '—')}</td>
+            <td>${escapeHtml(o.building_name || '—')}</td>
             <td>${escapeHtml(o.pickup_date)}<small class="muted" style="display:block">${escapeHtml(o.pickup_time)}</small></td>
-            
-            <!-- NEW ITEMS COLUMN -->
             <td>
               ${(o.order_items || []).map(item => `
                 <div style="font-size:0.82rem; display:flex; justify-content:space-between; gap:8px; border-bottom:1px dashed #edf1ee; padding:3px 0;">
@@ -461,7 +459,6 @@
                 </div>
               `).join('') || `<span class="muted" style="font-style:italic;">No items</span>`}
             </td>
-
             <td>${money(o.total)}</td>
             <td><select data-order-status="${o.id}" style="min-width:150px">${STATUS_OPTIONS.map(status => `<option value="${status}" ${status === o.status ? "selected" : ""}>${status}</option>`).join("")}</select></td>
             <td>
@@ -530,7 +527,8 @@
         <h2>${escapeHtml(order.customer_name)}</h2>
         <div class="form-modal-grid">
           <p><strong>Contact:</strong><br>${escapeHtml(order.contact_number)}</p>
-          <p><strong>Email:</strong><br>${escapeHtml(order.email || "Not provided")}</p>
+          <p><strong>Section:</strong><br>${escapeHtml(order.section || 'Not provided')}</p>
+          <p><strong>Building:</strong><br>${escapeHtml(order.building_name || 'Not provided')}</p>
           <p><strong>Pickup:</strong><br>${escapeHtml(order.pickup_date)} at ${escapeHtml(order.pickup_time)}</p>
           <p><strong>Payment:</strong><br>${escapeHtml(order.payment_method)}</p>
         </div>
@@ -552,7 +550,7 @@
       if (!order) return;
       const itemRows = (order.order_items || []).map(item => `<tr><td>${escapeHtml(item.name_at_order)}</td><td>${item.quantity}</td><td>${money(item.price_at_order)}</td><td>${money(item.price_at_order * item.quantity)}</td></tr>`).join("");
       const win = window.open("", "_blank", "width=800,height=700");
-      win.document.write(`<!doctype html><html><head><title>${escapeHtml(order.order_number)}</title><style>body{font-family:Arial;padding:32px;color:#1f2c25}h1{color:#1f7a4d}table{width:100%;border-collapse:collapse}th,td{padding:10px;border-bottom:1px solid #ddd;text-align:left}.total{font-size:1.2rem;font-weight:bold;text-align:right}</style></head><body><h1>Daily Bread Blessings</h1><h2>Order ${escapeHtml(order.order_number)}</h2><p><strong>Customer:</strong> ${escapeHtml(order.customer_name)}<br><strong>Contact:</strong> ${escapeHtml(order.contact_number)}<br><strong>Pickup:</strong> ${escapeHtml(order.pickup_date)} at ${escapeHtml(order.pickup_time)}<br><strong>Status:</strong> ${escapeHtml(order.status)}</p><table><thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Subtotal</th></tr></thead><tbody>${itemRows}</tbody></table><p class="total">Total: ${money(order.total)}</p><p><strong>Notes:</strong> ${escapeHtml(order.notes || "None")}</p></body></html>`);
+      win.document.write(`<!doctype html><html><head><title>${escapeHtml(order.order_number)}</title><style>body{font-family:Arial;padding:32px;color:#1f2c25}h1{color:#1f7a4d}table{width:100%;border-collapse:collapse}th,td{padding:10px;border-bottom:1px solid #ddd;text-align:left}.total{font-size:1.2rem;font-weight:bold;text-align:right}</style></head><body><h1>Daily Bread Blessings</h1><h2>Order ${escapeHtml(order.order_number)}</h2><p><strong>Customer:</strong> ${escapeHtml(order.customer_name)}<br><strong>Contact:</strong> ${escapeHtml(order.contact_number)}<br><strong>Section:</strong> ${escapeHtml(order.section || '—')}<br><strong>Building:</strong> ${escapeHtml(order.building_name || '—')}<br><strong>Pickup:</strong> ${escapeHtml(order.pickup_date)} at ${escapeHtml(order.pickup_time)}<br><strong>Status:</strong> ${escapeHtml(order.status)}</p><table><thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Subtotal</th></tr></thead><tbody>${itemRows}</tbody></table><p class="total">Total: ${money(order.total)}</p><p><strong>Notes:</strong> ${escapeHtml(order.notes || "None")}</p></body></html>`);
       win.document.close();
       win.focus();
       win.print();

@@ -1,19 +1,14 @@
 (() => {
   "use strict";
 
-  // Use the global supabase client set in HTML
   const supabase = window.__SUPABASE;
   if (!supabase) {
     console.error("Supabase client not initialized. Check your URL and Anon Key in index.html");
     return;
   }
 
-  // Only cart is stored in localStorage
   const KEYS = { cart: "dbb_cart", notifications: "dbb_notifications" };
-
-  // Hardcoded initial data (fallback if database is empty)
   const initialCategories = ["Bread", "Pizza", "Cookies", "Drinks"];
-
   const categoryVisuals = {
     Bread: "assets/brioche-bites.png",
     Pizza: "assets/pepperoni-mini-pizza.png",
@@ -221,12 +216,10 @@
   let activeCategory = "All";
   let searchTerm = "";
 
-  // Cache variables
   let productsCache = [];
   let categoriesCache = [];
   let contentCache = {};
 
-  // DOM elements
   const elements = {
     productGrid: $("#productGrid"),
     categoryFilters: $("#categoryFilters"),
@@ -276,12 +269,13 @@
   }
 
   async function submitOrderToDB(order, cartItems) {
-    // Insert Order
+    // Insert Order (Email completely removed)
     const { data: orderData, error: orderError } = await supabase.from('orders').insert({
       order_number: order.orderNumber,
       customer_name: order.customerName,
       contact_number: order.contactNumber,
-      email: order.email,
+      section: order.section,
+      building_name: order.building,
       pickup_date: order.pickupDate,
       pickup_time: order.pickupTime,
       payment_method: order.paymentMethod,
@@ -609,149 +603,110 @@
     window.setInterval(spawnFood, 5000);
   }
 
+  // --- FIXED: Duplicate order bug prevents double submitting ---
+  let isSubmitting = false;
+
   async function submitOrder(event) {
     event.preventDefault();
+    if (isSubmitting) return; // Prevents double-clicking duplicates
     if (!cart.length) return;
-    const stockIssue = cart.find(item => {
-      const product = productsCache.find(entry => entry.id === item.productId);
-      return !product || item.quantity > product.stock || !product.available;
-    });
-    if (stockIssue) {
-      showToast("Some items are no longer available in the requested quantity.");
-      await renderProducts();
-      renderCart();
-      return;
-    }
 
-    // Pickup date is automatically set to Today (USING LOCAL TIME)
+    const stockIssue = cart.find(item => { const product = productsCache.find(entry => entry.id === item.productId); return !product || item.quantity > product.stock || !product.available; });
+    if (stockIssue) { showToast("Some items are no longer available in the requested quantity."); await renderProducts(); renderCart(); return; }
+
+    isSubmitting = true;
+
     const now = new Date();
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
     const day = String(now.getDate()).padStart(2, '0');
     const todayDate = `${year}-${month}-${day}`;
 
+    // Email completely removed!
     const order = {
       orderNumber: makeOrderNumber(),
       customerName: $("#customerName").value.trim(),
       contactNumber: $("#customerContact").value.trim(),
-      email: $("#customerEmail").value.trim(),
-      pickupDate: todayDate, // Automatically set to today
+      section: $("#customerSection").value.trim(),
+      building: $("#customerBuilding").value.trim(),
+      pickupDate: todayDate,
       pickupTime: $("#pickupTime").value,
       paymentMethod: $("#paymentMethod").value,
       notes: $("#orderNotes").value.trim(),
       total: getSubtotal()
     };
 
-    const cartItems = cart.map(item => {
-      const product = productsCache.find(entry => entry.id === item.productId);
-      return { productId: item.productId, name: product.name, price: product.price, quantity: item.quantity };
-    });
-
+    const cartItems = cart.map(item => { const product = productsCache.find(entry => entry.id === item.productId); return { productId: item.productId, name: product.name, price: product.price, quantity: item.quantity }; });
+    
     try {
       await submitOrderToDB(order, cartItems);
-
-      // --- NEW: SAVE ORDER FOR NOTIFICATIONS ---
+      
+      // Store notification with Contact Number instead of Email
       const notifs = getNotifications();
       if (!notifs.find(n => n.order === order.orderNumber)) {
-        notifs.push({ order: order.orderNumber, email: order.email, status: 'pending' });
+        notifs.push({ order: order.orderNumber, contact: order.contactNumber, status: 'pending' });
         saveNotifications(notifs);
       }
-      // -----------------------------------------
-
-      cart = [];
-      storageSetRaw(KEYS.cart, JSON.stringify(cart));
-      renderCart();
-      await renderProducts();
-
+      
+      cart = []; storageSetRaw(KEYS.cart, JSON.stringify(cart)); renderCart(); await renderProducts();
       elements.checkoutForm.classList.add("hidden");
       elements.orderConfirmation.classList.remove("hidden");
       $("#checkoutTitle").textContent = "Order Confirmation";
       $("#confirmStep").classList.add("active");
       elements.confirmationNumber.textContent = order.orderNumber;
       elements.confirmationDetails.innerHTML = `<p><strong>Pickup:</strong> ${escapeHtml(order.pickupDate)} at ${escapeHtml(order.pickupTime)}</p><p><strong>Total:</strong> ${money(order.total)}</p>`;
-      
     } catch (error) {
       showToast("Error placing order: " + error.message);
+    } finally {
+      isSubmitting = false; // Reset flag so they can try again if needed
     }
   }
 
   // =========================================================
-  // NEW: NOTIFICATION SYSTEM (Live Status Polling)
+  // NOTIFICATION SYSTEM (Now using Contact Number)
   // =========================================================
-  
-  function getNotifications() {
-    try { return JSON.parse(storageGetRaw(KEYS.notifications)) || []; } catch { return []; }
-  }
-  function saveNotifications(list) {
-    storageSetRaw(KEYS.notifications, JSON.stringify(list));
-  }
+  function getNotifications() { try { return JSON.parse(storageGetRaw(KEYS.notifications)) || []; } catch { return []; } }
+  function saveNotifications(list) { storageSetRaw(KEYS.notifications, JSON.stringify(list)); }
 
   async function pollOrderStatuses() {
     const notifs = getNotifications();
     const dot = document.getElementById('notifDot');
-
-    // Update UI Dot
-    if (notifs.some(n => n.status === 'completed')) {
-      dot.classList.remove('hidden');
-    } else {
-      dot.classList.add('hidden');
-    }
-
+    if (notifs.some(n => n.status === 'completed')) { dot.classList.remove('hidden'); } else { dot.classList.add('hidden'); }
     if (notifs.length === 0) return;
-
     let changed = false;
     for (let i = 0; i < notifs.length; i++) {
       if (notifs[i].status === 'completed') continue;
-      
-      const { data, error } = await supabase.from('orders').select('status').eq('order_number', notifs[i].order).eq('email', notifs[i].email).maybeSingle();
+      // Lookup by Order Number AND Contact Number
+      const { data, error } = await supabase.from('orders').select('status').eq('order_number', notifs[i].order).eq('contact_number', notifs[i].contact).maybeSingle();
       if (error || !data) continue;
-
       if (data.status === 'completed') {
         notifs[i].status = 'completed';
         changed = true;
         showToast(`🎉 Order ${notifs[i].order} is ready for pickup! Click the 🔔 Bell to rate now!`);
       }
     }
-
     if (changed) {
       saveNotifications(notifs);
-      // Re-run to update the dot immediately
       const updatedUnread = notifs.filter(n => n.status === 'completed');
-      if (updatedUnread.length > 0) {
-        document.getElementById('notifDot').classList.remove('hidden');
-      }
+      if (updatedUnread.length > 0) document.getElementById('notifDot').classList.remove('hidden');
     }
   }
 
   function initNotificationSystem() {
     const bell = document.getElementById('notificationBell');
     const dot = document.getElementById('notifDot');
-
     bell.addEventListener('click', async () => {
       const notifs = getNotifications();
       const completed = notifs.filter(n => n.status === 'completed');
-      
-      if (completed.length === 0) {
-        showToast("You have no new notifications.");
-        return;
-      }
-
-      // Grab the first completed order and auto-fill the Rate Order modal
+      if (completed.length === 0) { showToast("You have no new notifications."); return; }
       const target = completed[0];
       
-      // Fill the fields
+      // NOTE: Change ID in your HTML from "rateOrderEmail" to "rateOrderContact" 
       document.getElementById('rateOrderNumber').value = target.order;
-      document.getElementById('rateOrderEmail').value = target.email;
+      document.getElementById('rateOrderContact').value = target.contact; 
       
-      // Open the modal
       openLayer(document.getElementById('rateOrderModal'));
-
-      // Automatically trigger the "Find My Order" click after a tiny delay
-      setTimeout(() => {
-        document.getElementById('checkOrderForRating').click();
-      }, 400);
-
-      // Remove it from the list so the dot disappears next poll
+      setTimeout(() => { document.getElementById('checkOrderForRating').click(); }, 400);
       const updatedNotifs = notifs.filter(n => n.order !== target.order);
       saveNotifications(updatedNotifs);
       dot.classList.add('hidden');
@@ -759,7 +714,7 @@
   }
 
   // =========================================================
-  // RATE YOUR ORDER LOGIC (Unlocked only on COMPLETED status)
+  // RATE YOUR ORDER (Now using Contact Number)
   // =========================================================
   function initRateOrderSystem() {
     const modal = document.getElementById('rateOrderModal');
@@ -785,7 +740,7 @@
       selectedRating = 0;
       foundOrderNumber = "";
       document.getElementById('rateOrderNumber').value = "";
-      document.getElementById('rateOrderEmail').value = "";
+      document.getElementById('rateOrderContact').value = "";
       starsContainer.querySelectorAll('button').forEach(b => b.classList.remove('is-selected'));
       textDisplay.textContent = "Tap a star to rate";
       openLayer(modal);
@@ -807,27 +762,25 @@
 
     checkBtn.addEventListener('click', async () => {
       const number = document.getElementById('rateOrderNumber').value.trim();
-      const email = document.getElementById('rateOrderEmail').value.trim();
-      if (!number || !email) return showToast("Please enter both Order Number and Email.");
+      // Using Contact Number instead of Email
+      const contact = document.getElementById('rateOrderContact').value.trim();
+      if (!number || !contact) return showToast("Please enter both Order Number and Contact Number.");
 
       checkBtn.disabled = true;
       checkBtn.textContent = "Searching...";
-
       try {
-        const { data, error } = await supabase.from('orders').select('*').eq('order_number', number).eq('email', email).maybeSingle();
+        // Lookup by Order Number AND Contact Number
+        const { data, error } = await supabase.from('orders').select('*').eq('order_number', number).eq('contact_number', contact).maybeSingle();
         if (error) throw error;
-
         if (!data) {
           showToast("Order not found. Please check your details.");
           checkBtn.disabled = false;
           checkBtn.textContent = "Find My Order";
           return;
         }
-
         lookupDiv.classList.add('hidden');
         resultDiv.classList.remove('hidden');
         foundOrderNumber = data.order_number;
-
         detailsDiv.innerHTML = `
           <div class="form-modal-grid" style="background: #f9fcfb; padding: 15px; border-radius: 12px; margin-bottom: 15px;">
             <p><strong>Order:</strong><br>${escapeHtml(data.order_number)}</p>
@@ -836,7 +789,6 @@
             <p><strong>Status:</strong><br><span class="status ${data.status.replace(/\s+/g, '-')}">${escapeHtml(data.status)}</span></p>
           </div>
         `;
-
         if (data.status.toLowerCase() === 'completed') {
           formContainer.classList.remove('hidden');
           thankYouDiv.classList.add('hidden');
@@ -850,19 +802,12 @@
           thankYouDiv.classList.add('hidden');
           detailsDiv.innerHTML += `<p style="margin-top:10px; color: var(--warning); font-weight:800;">Your order is currently <strong>${escapeHtml(data.status)}</strong>. Please wait until it is marked as "Completed" to leave a review.</p>`;
         }
-
-      } catch (error) {
-        showToast("Error looking up order: " + error.message);
-      } finally {
-        checkBtn.disabled = false;
-        checkBtn.textContent = "Find My Order";
-      }
+      } catch (error) { showToast("Error looking up order: " + error.message); } finally { checkBtn.disabled = false; checkBtn.textContent = "Find My Order"; }
     });
 
     submitBtn.addEventListener('click', async () => {
       if (!foundOrderNumber) return showToast("No order found.");
       if (selectedRating === 0) return showToast("Please select a star rating.");
-      
       submitBtn.disabled = true;
       submitBtn.textContent = "Submitting...";
       try {
@@ -875,32 +820,18 @@
         thankYouDiv.classList.remove('hidden');
         await renderRatings();
         showToast("Rating submitted successfully!");
-      } catch (error) {
-        showToast("Error submitting rating: " + error.message);
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = "Submit Rating";
-      }
+      } catch (error) { showToast("Error submitting rating: " + error.message); } finally { submitBtn.disabled = false; submitBtn.textContent = "Submit Rating"; }
     });
   }
 
   async function submitMessage(event) {
     event.preventDefault();
     const messageData = {
-      name: $("#contactName").value.trim(),
-      email: $("#contactEmail").value.trim(),
-      subject: $("#contactSubject").value.trim(),
-      message: $("#contactMessage").value.trim(),
-      is_read: false,
-      created_at: new Date().toISOString()
+      name: $("#contactName").value.trim(), email: $("#contactEmail").value.trim(),
+      subject: $("#contactSubject").value.trim(), message: $("#contactMessage").value.trim(),
+      is_read: false, created_at: new Date().toISOString()
     };
-    try {
-      await submitMessageToDB(messageData);
-      event.target.reset();
-      showToast("Your message has been sent.");
-    } catch (error) {
-      showToast("Error sending message: " + error.message);
-    }
+    try { await submitMessageToDB(messageData); event.target.reset(); showToast("Your message has been sent."); } catch (error) { showToast("Error sending message: " + error.message); }
   }
 
   function applyContent(content) {
@@ -913,12 +844,8 @@
     const phone = content.phone || "0965 296 4107";
     const email = content.email || "";
     $("#contactText").textContent = email ? `${phone} · ${email}` : phone;
-    
     const fbLink = content.facebook || "#";
-    $("#socialLinks").innerHTML = `
-      <a href="${fbLink}" aria-label="Facebook">f</a>
-      <a href="${content.instagram || "#"}" aria-label="Instagram">◎</a>
-      <a href="${content.tiktok || "#"}" aria-label="TikTok">♪</a>`;
+    $("#socialLinks").innerHTML = `<a href="${fbLink}" aria-label="Facebook">f</a><a href="${content.instagram || "#"}" aria-label="Instagram">◎</a><a href="${content.tiktok || "#"}" aria-label="TikTok">♪</a>`;
     const fbContact = document.getElementById("facebookContactText");
     if (fbContact) fbContact.href = fbLink;
   }
@@ -1288,7 +1215,7 @@
       initializeFoodRain();
       
       initRateOrderSystem();
-      initNotificationSystem(); // Initialize the Notification Bell
+      initNotificationSystem();
 
       // Poll the server for order status changes every 15 seconds
       setInterval(pollOrderStatuses, 15000);
